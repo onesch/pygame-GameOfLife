@@ -1,6 +1,9 @@
-from cell import Cell
 import pygame
 import random
+from classes.cell import Cell
+from patterns.block2x2 import block2x2_pattern
+from patterns.planer import planer_pattern
+from patterns.z_to_planers import z_to_planers_pattern
 
 
 class GameOfLife:
@@ -9,47 +12,28 @@ class GameOfLife:
         self.height = height
         self.cell_size = cell_size
         self.grid = [
-            [Cell(x, y, cell_size) for x in range(width)] for y in range(height)
+            [Cell(x, y, cell_size)
+             for x in range(width)] for y in range(height)
+        ]
+        self.previous_states = [
+            [False for x in range(width)] for y in range(height)
         ]
         self.mouse_coords = (0, 0)
 
     def block2x2(self, x, y):
-        pattern = [
-            (0, 0),
-            (1, 0),
-            (0, 1),
-            (1, 1),
-        ]
-
-        for dx, dy in pattern:
+        for dx, dy in block2x2_pattern:
             new_x, new_y = x + dx, y + dy
             if 0 <= new_x < self.width and 0 <= new_y < self.height:
                 self.grid[new_y][new_x].is_alive = True
 
     def planer(self, x, y):
-        pattern = [
-            (0, 0),
-            (2, 0),
-            (1, 1),
-            (2, 1),
-            (1, 2),
-        ]
-
-        for dx, dy in pattern:
+        for dx, dy in planer_pattern:
             new_x, new_y = x + dx, y + dy
             if 0 <= new_x < self.width and 0 <= new_y < self.height:
                 self.grid[new_y][new_x].is_alive = True
 
     def z_to_planers(self, x, y):
-        pattern = [
-        (0, 0), (1, 0), (2, 0), (3, 0), (4, 0),
-                                (3, 1),
-                        (2, 2),
-                (1, 3),    
-        (0, 4), (1, 4), (2, 4), (3, 4), (4, 4), 
-        ]
-
-        for dx, dy in pattern:
+        for dx, dy in z_to_planers_pattern:
             new_x, new_y = x + dx, y + dy
             if 0 <= new_x < self.width and 0 <= new_y < self.height:
                 self.grid[new_y][new_x].is_alive = True
@@ -68,7 +52,12 @@ class GameOfLife:
         for y, row in enumerate(self.grid):
             for x, cell in enumerate(row):
                 neighbors = self.count_neighbors(x, y)
-                new_grid[y][x].is_alive = self.apply_rules(cell.is_alive, neighbors)
+                new_grid[y][x].is_alive = self.apply_rules(
+                    cell.is_alive, neighbors)
+
+        self.previous_states = [
+            [cell.is_alive for cell in row] for row in self.grid
+        ]
 
         self.grid = new_grid
 
@@ -88,7 +77,7 @@ class GameOfLife:
         return neighbors
 
     def apply_rules(self, current_state, neighbors):
-        if current_state == 1 and (neighbors < 2 or neighbors > 3):
+        if current_state == 1 and neighbors < 2 or neighbors > 3:
             return 0  # Условие для "живой" клетки
         elif current_state == 0 and neighbors == 3:
             return 1  # Условие для "мертвой" клетки, у которой ровно 3 соседа
@@ -99,11 +88,15 @@ class GameOfLife:
         surface.fill((0, 0, 0))
         for y, row in enumerate(self.grid):
             for x, cell in enumerate(row):
+                if cell.is_alive:
+                    if cell.is_alive == self.previous_states[y][x]:
+                        cell.color = (0, 0, 255)  # Синий для застывших клеток
+                    else:
+                        cell.color = (255, 0, 0)  # Красный для клеток в движении
                 cell.draw(surface)
 
-        self.draw_cell_coordinates(
-            surface, self.mouse_coords
-        )  # Отрисовываем координаты клеток в углу
+        self.draw_info(surface, self.mouse_coords)
+
         pygame.display.flip()
 
     def handle_mouse_motion(self, pos):
@@ -112,9 +105,41 @@ class GameOfLife:
                 cell.check_hover(pos)
         self.mouse_coords = pos
 
-    def draw_cell_coordinates(self, surface, mouse_coords):
+    def draw_info(self, surface, mouse_coords):
         font = pygame.font.Font(None, 16)
-        x, y = mouse_coords  # Получаем координаты мыши
+        x, y = mouse_coords
         cell_coords = f"({x // self.cell_size}, {y // self.cell_size})"
-        text_surface = font.render(cell_coords, True, (255, 255, 255))
-        surface.blit(text_surface, (10, 10))  # x,y
+
+        total_cells = 0
+        static_cells = 0
+        dynamic_cells = 0
+
+        for y, row in enumerate(self.grid):
+            for x, cell in enumerate(row):
+                if cell.is_alive:
+                    total_cells += 1
+                    if cell.is_alive == self.previous_states[y][x]:
+                        static_cells += 1
+                    else:
+                        dynamic_cells += 1
+
+        info_text = (
+            f"coords: {cell_coords}\n"
+            f"total: {total_cells}\n"
+            f"frozen: {static_cells}\n"
+            f"in move: {dynamic_cells}"
+        )
+
+        y_offset = 10
+        for line in info_text.split('\n'):
+            color = (255, 255, 255)
+            if "frozen" in line:
+                color = (0, 0, 255)  # Синий для текста frozen
+            elif "in move" in line:
+                color = (255, 0, 0)  # Красный для текста in move
+            text_surface = font.render(line, True, color)
+            surface.blit(text_surface, (10, y_offset))
+            y_offset += 20
+
+
+# Остальной код класса Cell and обработка событий Pygame должны быть определены отдельно.
