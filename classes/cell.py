@@ -12,7 +12,7 @@ class Cell:
 
     def draw(self, surface):
         color = (self.color if self.is_alive else (0, 0, 0))
-        
+
         if self.hovered:
             color = (255, 255, 0)
 
@@ -30,8 +30,8 @@ class Cell:
 
     def check_hover(self, pos):
         mx, my = pos
-        if self.x * self.size <= mx < (self.x + 1) * self.size and self.y * self.size <= my < (self.y + 1) * self.size:
+        if (self.x * self.size <= mx < (self.x + 1) * self.size
+                and self.y * self.size <= my < (self.y + 1) * self.size):
             self.hovered = True
         else:
             self.hovered = False
-            

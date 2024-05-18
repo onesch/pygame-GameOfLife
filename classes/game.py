@@ -7,10 +7,11 @@ from patterns.z_to_planers import z_to_planers_pattern
 
 
 class GameOfLife:
-    def __init__(self, width, height, cell_size):
+    def __init__(self, game_mode, width, height, cell_size):
         self.width = width
         self.height = height
         self.cell_size = cell_size
+        self.game_mode = game_mode
         self.grid = [
             [Cell(x, y, cell_size)
              for x in range(width)] for y in range(height)
@@ -88,15 +89,19 @@ class GameOfLife:
         surface.fill((0, 0, 0))
         for y, row in enumerate(self.grid):
             for x, cell in enumerate(row):
-                if cell.is_alive:
+                if self.game_mode == "base":
+                    # if cell.is_alive:
+                    cell.color = (255, 255, 255)  # white cell all
+
+                elif self.game_mode == "statistic":
+                    # if cell.is_alive:
                     if cell.is_alive == self.previous_states[y][x]:
-                        cell.color = (0, 0, 255)  # Синий для застывших клеток
+                        cell.color = (0, 0, 255)  # blue cell frozen
                     else:
-                        cell.color = (255, 0, 0)  # Красный для клеток в движении
+                        cell.color = (255, 0, 0)  # red cell in move
                 cell.draw(surface)
 
         self.draw_info(surface, self.mouse_coords)
-
         pygame.display.flip()
 
     def handle_mouse_motion(self, pos):
@@ -134,12 +139,9 @@ class GameOfLife:
         for line in info_text.split('\n'):
             color = (255, 255, 255)
             if "frozen" in line:
-                color = (0, 0, 255)  # Синий для текста frozen
+                color = (0, 0, 255)  # text frozen
             elif "in move" in line:
-                color = (255, 0, 0)  # Красный для текста in move
+                color = (255, 0, 0)  # text in move
             text_surface = font.render(line, True, color)
             surface.blit(text_surface, (10, y_offset))
             y_offset += 20
-
-
-# Остальной код класса Cell and обработка событий Pygame должны быть определены отдельно.

@@ -4,19 +4,21 @@ from classes.admin import Admin
 
 # Параметры
 width, height = 900, 700
-cell_size = 8
+cell_size = 8  # 50
 GAME_TIME = 100
+GAME_MODE = "base"  # base # statistic
 
 # Создание экрана
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game of Life")
 
 # Создание объекта игры
-game = GameOfLife(width // cell_size, height // cell_size, cell_size)
+game = GameOfLife(GAME_MODE,
+                  width // cell_size, height // cell_size,
+                  cell_size)
 game.randomize_cells()
 
-# Создание объекта игрока и передача объекта игры
-# и значения GAME_TIME в конструктор
+# Создание объекта игрока, передача объекта игры и GAME_TIME
 admin = Admin(game, GAME_TIME)
 
 
@@ -38,7 +40,7 @@ def start_game():
         admin.controls()
 
         # Передача текущего значения GAME_TIME
-        # из объекта администратора в основной цикл
+        # из объекта игрока в основной цикл
         GAME_TIME = admin.game_time
 
         if not admin.game_paused:
@@ -48,6 +50,6 @@ def start_game():
         game.draw(screen)
         pygame.display.flip()
 
-        # Задержка для
-        # контроля скорости обновления
+        # Задержка для контроля
+        # скорости обновления
         pygame.time.delay(GAME_TIME)
