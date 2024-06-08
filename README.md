@@ -1,7 +1,7 @@
 ## images
 ![](example/cell_size.png)
 ![](example/game_mode.png)
-###
+##
 <img src="example/exampl#e_1.gif" alt="" width="250" height="250">
 
 ## Description of Files
